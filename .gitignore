@@ -43,3 +43,6 @@ next-env.d.ts
 # Editor & Environment configs
 .vscode/
 .idx/
+
+# Chave secreta do Firebase Admin
+serviceAccountKey.json
