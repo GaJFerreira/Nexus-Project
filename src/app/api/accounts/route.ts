@@ -88,38 +88,4 @@ export async function GET(request: Request) {
     }
   }
 
-  export async function PUT(request: Request, { params }: { params: { id: string } }) {
-    const adminApp = initializeAdminApp();
   
-    try {
-      const accountId = params.id;
-      const userId = "Di7CMExsxfYG1ZiMXMmHUPecIAZ2"; // Seu ID de teste
-  
-      const { nome, tipo, saldo } = await request.json();
-  
-      if (!nome || !tipo || saldo === undefined) {
-        return NextResponse.json({ message: "Nome, tipo e saldo são obrigatórios." }, { status: 400 });
-      }
-      
-      const db = adminApp.firestore();
-      const accountRef = db.collection('accounts').doc(accountId);
-  
-      const doc = await accountRef.get();
-      if (!doc.exists || doc.data()?.userId !== userId) {
-        return NextResponse.json({ message: "Conta não encontrada ou não pertence ao usuário." }, { status: 404 });
-      }
-      
-      await accountRef.update({
-        nome: nome,
-        tipo: tipo,
-        saldo: saldo
-      });
-  
-      const updatedDoc = await accountRef.get();
-      return NextResponse.json({ id: updatedDoc.id, ...updatedDoc.data() }, { status: 200 });
-  
-    } catch (error: any) {
-      console.error("Erro ao atualizar conta:", error);
-      return NextResponse.json({ message: "Erro ao atualizar conta." }, { status: 500 });
-    }
-  }
