@@ -6,6 +6,15 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const adminApp = initializeAdminApp();
   
     try {
+      /* const idToken = request.headers.get("Authorization")?.split('Bearer ')[1];
+        if(!idToken){
+            return NextResponse.json({message: "Acesso não autorizado. Token encontrado"}, {status: 401});
+        }
+
+        const decodedtoken = await adminAuth().verifyIdToken(idToken);
+        const userId = decodedtoken.uid;
+        */
+
       const accountId = params.id;
       const userId = "Di7CMExsxfYG1ZiMXMmHUPecIAZ2";
   
@@ -42,6 +51,16 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const adminApp = initializeAdminApp();
     
     try {
+
+      /* const idToken = request.headers.get("Authorization")?.split('Bearer ')[1];
+        if(!idToken){
+            return NextResponse.json({message: "Acesso não autorizado. Token encontrado"}, {status: 401});
+        }
+
+        const decodedtoken = await adminAuth().verifyIdToken(idToken);
+        const userId = decodedtoken.uid;
+        */
+
       const accountId = params.id;
     
       const userId = "Di7CMExsxfYG1ZiMXMmHUPecIAZ2";

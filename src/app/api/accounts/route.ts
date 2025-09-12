@@ -69,7 +69,7 @@ export async function GET(request: Request) {
       const snapshot = await accountsRef.where('userId', '==', userId).get();
   
       if (snapshot.empty) {
-        return NextResponse.json([], { status: 200 }); // Retorna uma lista vazia se não encontrar nada
+        return NextResponse.json([], { status: 200 });
       }
   
       const accounts: any[] = [];
@@ -80,7 +80,7 @@ export async function GET(request: Request) {
         });
       });
   
-      return NextResponse.json(accounts, { status: 200 }); // 200 significa "OK"
+      return NextResponse.json(accounts, { status: 200 });
   
     } catch (error: any) {
       console.error("Erro ao buscar contas:", error);
