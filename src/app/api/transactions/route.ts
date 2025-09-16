@@ -65,10 +65,19 @@ export async function GET(request: Request) {
 
         const userId = "Di7CMExsxfYG1ZiMXMmHUPecIAZ2";
 
-        const db = adminApp.firestore();
-        const transactionsRef = db.collection('transactions');
+        const { searchParams } = new URL(request.url);
+        const accountId = searchParams.get('accountId');
 
-        const snapshot = await transactionsRef.where('userId', '==', userId).get();
+        const db = adminApp.firestore();
+        let query: firestore.Query = db.collection('transactions');
+
+        query = query.where('userId', '==', userId);
+
+        if (accountId) {
+            query = query.where('accountId', '==', accountId);
+        }
+
+        const snapshot = await query.get()
 
         if (snapshot.empty) {
             return NextResponse.json([], { status: 200 });
