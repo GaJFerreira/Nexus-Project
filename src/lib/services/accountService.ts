@@ -76,3 +76,32 @@ export async function updateAccount(userId: string, accountId: string, account: 
     
     return { id: accountId, ...newAccount };
 }
+
+export async function deleteAccount(userId:string, accountId: string){
+    const adminApp = initializeAdminApp();
+    const db = adminApp.firestore();
+
+    const accountref = db.collection('accounts').doc(accountId)
+    const doc = await accountref.get();
+
+        if (!doc.exists || doc.data()?.userId !== userId) {
+        throw new Error('Conta não encontrada ou não pertence ao usuário.');
+    }
+
+    const transactionRef = db.collection('transactions')
+    const snapshot = await transactionRef.where('accountId', '==', accountId).get();
+
+    const batch = db.batch();
+
+    batch.delete(accountref);
+
+    if(!snapshot.empty){
+        snapshot.docs.forEach(doc =>{
+            batch.delete(doc.ref);
+        });
+    }
+
+    await batch.commit();
+
+    
+}
