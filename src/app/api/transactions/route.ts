@@ -1,100 +1,35 @@
 import { NextResponse } from "next/server";
-import { initializeAdminApp } from "@/lib/firebase/admin";
-import { auth as adminAuth, firestore } from "firebase-admin";
+import { createTransaction, getTransactions } from "@/core/services/transactionsservice";
+import { TransactionFilters } from "@/core/models";
+
+const TEST_USER_ID = "Di7CMExsxfYG1ZiMXMmHUPecIAZ2";
 
 export async function POST(request: Request) {
-    
-    const adminApp = initializeAdminApp();
-
     try {
-       /* const idToken = request.headers.get("Authorization")?.split('Bearer ')[1];
-        if(!idToken){
-            return NextResponse.json({message: "Acesso não autorizado. Token encontrado"}, {status: 401});
-        }
-
-        const decodedtoken = await adminAuth().verifyIdToken(idToken);
-        const userId = decodedtoken.uid;
-        */
-
-        const userId = "Di7CMExsxfYG1ZiMXMmHUPecIAZ2";
-
-        const{accountId, descricao, valor, data, tipo, categoria, metodoPagamento, totalParcelas, parcelaAtual} = await request.json();
-
-        if(!descricao || !valor || !data || !tipo || !categoria || !metodoPagamento){
-            return NextResponse.json({message: "Campos obrigatorios não foram preenchidos"}, {status: 400});
-        }
-
-        const newTransaction = {
-            userId: userId,
-            accountId: accountId,
-            descricao: descricao,
-            valor: valor,
-            data: new Date(data),
-            tipo: tipo,
-            categoria: categoria,
-            metodoPagamento: metodoPagamento,
-            totalParcelas: totalParcelas || 1,
-            parcelaAtual: parcelaAtual || 1,
-            createdAt: firestore.FieldValue.serverTimestamp(),
-        }
-
-        const db = adminApp.firestore();
-        const docRef = await db.collection('transactions').add(newTransaction);
-
-        return NextResponse.json({id: docRef.id, ...newTransaction}, {status: 201})
-
-    } catch (error: any) {
-        console.error("Erro ao criar transação:", error)
-        return NextResponse.json({message: "Erro ao criar transação"}, {status: 500})
+        const body = await request.json();
+        const newTransaction = await createTransaction(TEST_USER_ID, body);
+        return NextResponse.json(newTransaction, { status: 201 });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : "Erro desconhecido";
+        return NextResponse.json({ message }, { status: 400 });
     }
-    
 }
 
 export async function GET(request: Request) {
-    const adminApp = initializeAdminApp();
-
     try {
-        /*
-        const idToken = request.headers.get('Authorization')?.split('Bearer ')[1];
-        if (!idToken) {
-            return NextResponse.json({ message: "Acesso não autorizado." }, { status: 401 });
-        }
-        const decodedToken = await admin.auth().verifyIdToken(idToken);
-        const userId = decodedToken.uid;
-        */
-
-        const userId = "Di7CMExsxfYG1ZiMXMmHUPecIAZ2";
-
         const { searchParams } = new URL(request.url);
-        const accountId = searchParams.get('accountId');
+        
+        const filters: TransactionFilters = {
+            accountId: searchParams.get('accountId'),
+            type: searchParams.get('type') as 'income' | 'expense' | null,
+            month: searchParams.get('month') ? parseInt(searchParams.get('month')!) : undefined,
+            year: searchParams.get('year') ? parseInt(searchParams.get('year')!) : undefined,
+        };
 
-        const db = adminApp.firestore();
-        let query: firestore.Query = db.collection('transactions');
-
-        query = query.where('userId', '==', userId);
-
-        if (accountId) {
-            query = query.where('accountId', '==', accountId);
-        }
-
-        const snapshot = await query.get()
-
-        if (snapshot.empty) {
-            return NextResponse.json([], { status: 200 });
-        }
-
-        const transactions: any[] = [];
-        snapshot.forEach(doc => {
-            transactions.push({
-                id: doc.id,
-                ...doc.data()
-            });
-        });
-
+        const transactions = await getTransactions(TEST_USER_ID, filters);
         return NextResponse.json(transactions, { status: 200 });
-
-    } catch (error: any) {
-        console.error("Erro ao buscar transações:", error);
-        return NextResponse.json({ message: "Erro ao buscar transações." }, { status: 500 });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : "Erro desconhecido";
+        return NextResponse.json({ message }, { status: 500 });
     }
 }

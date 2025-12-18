@@ -1,26 +1,14 @@
-import admin from 'firebase-admin'
-import { initializeAdminApp } from '../firebase/admin'
-import { Filter } from 'firebase-admin/firestore';
+import admin from 'firebase-admin';
+import { initializeAdminApp } from '@/lib/firebase/admin';
+import { Transaction, TransactionFilters } from '@/core/models';
 
-interface Transaction {
-    accountId: string,
-    description: string,
-    value: number,
-    type: string,
-    category: string,
-    paymentMethod: string,
-    date: Date,
-    totalInstallments?: number,
-    currentInstallment?: number,
-}
-
-export async function createTransaction(userId: string, transaction: Transaction) {
+export async function createTransaction(userId: string, transaction: Omit<Transaction, 'id' | 'userId'>) {
 
     if (!transaction.description || transaction.description.trim() === '') {
         throw new Error('Descrição é obrigatória.');
     }
 
-    if (!transaction.value || transaction.value <= 0) {
+    if (!transaction.amount || transaction.amount <= 0) {
         throw new Error('Valor deve ser maior que zero.');
     }
 
@@ -36,7 +24,8 @@ export async function createTransaction(userId: string, transaction: Transaction
         throw new Error('Método de pagamento é obrigatório.');
     }
 
-    if (!transaction.date || isNaN(transaction.date.getTime())) {
+    const dateObj = transaction.date instanceof Date ? transaction.date : new Date(transaction.date);
+    if (isNaN(dateObj.getTime())) {
         throw new Error('Data inválida.');
     }
 
@@ -47,30 +36,27 @@ export async function createTransaction(userId: string, transaction: Transaction
         userId: userId,
         accountId: transaction.accountId,
         description: transaction.description,
-        value: transaction.value,
+        amount: transaction.amount,
         type: transaction.type,
         category: transaction.category,
         paymentMethod: transaction.paymentMethod,
-        date: transaction.date,
-        totalInstallments: transaction.totalInstallments || 1,
-        currentInstallment: transaction.currentInstallment || 1,
-    }
+        date: dateObj,
+        isInstallment: transaction.isInstallment || false,
+        installmentTotal: transaction.installmentTotal || 1,
+        installmentCurrent: transaction.installmentCurrent || 1,
+        installmentParentId: transaction.installmentParentId || null,
+        createdAt: new Date(),
+    };
 
     const docRef = await db.collection('transactions').add(newTransaction);
 
     return {
-        id: docRef.id, ...newTransaction
-    }
+        id: docRef.id, 
+        ...newTransaction
+    };
 }
 
-interface Filters {
-    accountId?: string | null;
-    month?: string | null;
-    year?: string | null;
-    type?: string | null;
-}
-
-export async function getTransactions(userId: string, filters: Filters) {
+export async function getTransactions(userId: string, filters: TransactionFilters) {
 
     const adminApp = initializeAdminApp();
     const db = adminApp.firestore();
@@ -87,30 +73,31 @@ export async function getTransactions(userId: string, filters: Filters) {
     }
 
     if (filters.month && filters.year) {
-        const numMes = parseInt(filters.month, 10);
-        const numAno = parseInt(filters.year, 10);
-        const startDate = new Date(numAno, numMes - 1, 1);
-        const endDate = new Date(numAno, numMes, 1);
-        query = query.where('data', '>=', startDate).where('data', '<', endDate);
+        const startDate = new Date(filters.year, filters.month - 1, 1);
+        const endDate = new Date(filters.year, filters.month, 0, 23, 59, 59);
+        
+        query = query.where('date', '>=', startDate).where('date', '<=', endDate);
     }
-
-    query = query.orderBy('data', 'desc')
 
     const snapshot = await query.get();
 
     if (snapshot.empty) {
-        return []
+        return [];
     }
 
-    const transactions: any[] = [];
-    snapshot.forEach(doc => {
-        transactions.push({ id: doc.id, ...doc.data() });
+    const transactions = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return { 
+            id: doc.id, 
+            ...data,
+            date: data.date.toDate ? data.date.toDate() : new Date(data.date) 
+        } as Transaction;
     });
 
-    return transactions;
+    return transactions.sort((a, b) => b.date.getTime() - a.date.getTime());
 }
 
-export async function updateTransaction(userId: string, transactionId: string, transaction: Transaction) {
+export async function updateTransaction(userId: string, transactionId: string, transaction: Partial<Transaction>) {
     const adminApp = initializeAdminApp();
     const db = adminApp.firestore();
 
@@ -121,23 +108,24 @@ export async function updateTransaction(userId: string, transactionId: string, t
         throw new Error("Transação não encontrada ou não pertence ao usuario");
     }
 
-    const newTransaction = {
-        userId: userId,
+    const updateData = JSON.parse(JSON.stringify({
         accountId: transaction.accountId,
         description: transaction.description,
-        value: transaction.value,
+        amount: transaction.amount,
         type: transaction.type,
         category: transaction.category,
         paymentMethod: transaction.paymentMethod,
         date: transaction.date,
-        totalInstallments: transaction.totalInstallments || 1,
-        currentInstallment: transaction.currentInstallment || 1,
-    }
+        isInstallment: transaction.isInstallment,
+        installmentTotal: transaction.installmentTotal,
+        installmentCurrent: transaction.installmentCurrent,
+        updatedAt: new Date()
+    }));
 
-    await transactionRef.update(newTransaction);
+    await transactionRef.update(updateData);
 
     return {
-        id: transactionId, ...newTransaction
+        id: transactionId, ...updateData
     };
 }
 
@@ -154,6 +142,4 @@ export async function deleteTransaction(userId: string, transactionId: string) {
     }
 
     await transactionRef.delete();
-
-
 }

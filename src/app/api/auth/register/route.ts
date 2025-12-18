@@ -1,12 +1,8 @@
-
-
 import { NextResponse } from 'next/server';
-import { initializeAdminApp } from '@/lib/firebase/admin'; // Importa nosso inicializador
+import { initializeAdminApp } from '@/lib/firebase/admin';
 import { auth as adminAuth } from 'firebase-admin';
 
-
 export async function POST(request: Request) {
-
   initializeAdminApp();
 
   try {
@@ -28,8 +24,9 @@ export async function POST(request: Request) {
       nome: userRecord.displayName 
     }, { status: 201 });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("Erro ao registrar usuário:", error);
-    return NextResponse.json({ message: "Erro ao registrar usuário." }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Erro desconhecido";
+    return NextResponse.json({ message }, { status: 500 });
   }
 }
