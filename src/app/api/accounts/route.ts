@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { initializeAdminApp } from "@/lib/firebase/admin";
 import { auth as adminAuth, firestore } from "firebase-admin";
-import { createAccount, getAccountsByUserId } from "@/lib/services/accountService";
+import { createAccount, getAccountsByUserId } from "@/core/services/accountService";
 import { get } from "http";
 
 export async function POST(request: Request) {

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { initializeAdminApp } from "@/lib/firebase/admin";
-import { updateAccount,deleteAccount } from "@/lib/services/accountService";
+import { updateAccount,deleteAccount } from "@/core/services/accountService";
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
 
