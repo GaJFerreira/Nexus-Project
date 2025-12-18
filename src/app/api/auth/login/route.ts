@@ -12,7 +12,7 @@ export async function POST(request: Request){
             return NextResponse.json({message: "Token de ID é obrigatório."}, {status: 400});
         }
 
-        const decodedtoken = await adminAuth().verifyIdToken(idToken); // Correção: verifyIdToken é o método padrão
+        const decodedtoken = await adminAuth().verifyIdToken(idToken);
 
         const uid = decodedtoken.uid;
         const user = await adminAuth().getUser(uid);

@@ -9,14 +9,9 @@ const TEST_USER_ID = "Di7CMExsxfYG1ZiMXMmHUPecIAZ2";
 export const dynamic = 'force-dynamic'; // Garante que a página não faça cache estático dos dados
 
 export default async function Dashboard() {
-  // 1. Buscando dados diretamente do "Cérebro" (Services)
-  // Isso roda no servidor, antes da página chegar no seu navegador.
   const accounts = await getAccountsByUserId(TEST_USER_ID);
-  
-  // Buscando todas as transações (poderíamos filtrar por mês aqui)
   const transactions = await getTransactions(TEST_USER_ID, {});
 
-  // 2. Processando dados para os Cards (Regra de Visualização)
   const totalBalance = accounts.reduce((acc, curr) => acc + curr.saldo, 0);
   
   const income = transactions
@@ -27,32 +22,27 @@ export default async function Dashboard() {
     .filter(t => t.type === 'expense')
     .reduce((acc, t) => acc + t.amount, 0);
 
-  // Formatador de Moeda
   const formatMoney = (val: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val / 100);
   };
 
-  // --- SERVER ACTION PARA TESTE DE CONEXÃO ---
   async function seedDatabase() {
     "use server";
     
     try {
       console.log("Iniciando seed de teste...");
       
-      // 1. Criar uma conta de teste
       const newAccount = await createAccount(TEST_USER_ID, {
         nome: "Conta Teste Nubank",
-        saldo: 150000, // R$ 1.500,00
+        saldo: 150000,
         tipo: "checking"
       });
-      console.log("Conta criada:", newAccount.id);
 
-      // 2. Criar transações de teste vinculadas a essa conta
       if (newAccount.id) {
         await createTransaction(TEST_USER_ID, {
           accountId: newAccount.id,
           description: "Salário de Teste",
-          amount: 500000, // R$ 5.000,00
+          amount: 500000,
           type: "income",
           category: "Salário",
           paymentMethod: "pix",
@@ -62,7 +52,7 @@ export default async function Dashboard() {
         await createTransaction(TEST_USER_ID, {
           accountId: newAccount.id,
           description: "Compra Gamer (Mouse)",
-          amount: 25000, // R$ 250,00
+          amount: 25000,
           type: "expense",
           category: "Lazer",
           paymentMethod: "debit",
@@ -70,9 +60,7 @@ export default async function Dashboard() {
         });
       }
 
-      // Força a atualização da página para mostrar os novos dados
       revalidatePath("/");
-      console.log("Seed concluído com sucesso!");
       
     } catch (error) {
       console.error("Erro ao rodar seed:", error);
@@ -83,7 +71,6 @@ export default async function Dashboard() {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         
-        {/* Cabeçalho */}
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Nexus Dashboard</h1>
@@ -94,7 +81,6 @@ export default async function Dashboard() {
               Usuário Teste: {TEST_USER_ID.slice(0, 8)}...
             </div>
             
-            {/* BOTÃO DE TESTE DE CONEXÃO */}
             <form action={seedDatabase}>
               <button 
                 type="submit"
@@ -107,9 +93,7 @@ export default async function Dashboard() {
           </div>
         </div>
 
-        {/* Cards de Resumo (KPIs) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Card Saldo Total */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex justify-between items-start">
               <div>
@@ -122,7 +106,6 @@ export default async function Dashboard() {
             </div>
           </div>
 
-          {/* Card Receitas */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex justify-between items-start">
               <div>
@@ -135,7 +118,6 @@ export default async function Dashboard() {
             </div>
           </div>
 
-          {/* Card Despesas */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex justify-between items-start">
               <div>
@@ -151,7 +133,6 @@ export default async function Dashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Lista de Transações Recentes */}
           <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-6 border-b border-gray-100 flex justify-between items-center">
               <h3 className="font-semibold text-gray-900">Transações Recentes</h3>
@@ -159,7 +140,7 @@ export default async function Dashboard() {
             <div className="divide-y divide-gray-100">
               {transactions.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
-                  Nenhuma transação encontrada. Clique em "Gerar Dados de Teste" para popular o banco.
+                  Nenhuma transação encontrada. Clique em &quot;Gerar Dados de Teste&quot; para popular o banco.
                 </div>
               ) : (
                 transactions.slice(0, 5).map((t) => (
@@ -189,7 +170,6 @@ export default async function Dashboard() {
             </div>
           </div>
 
-          {/* Lista de Contas */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 h-fit">
             <div className="p-6 border-b border-gray-100">
               <h3 className="font-semibold text-gray-900">Minhas Contas</h3>

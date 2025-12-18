@@ -1,58 +1,36 @@
 import { NextResponse } from "next/server";
-import { initializeAdminApp } from "@/lib/firebase/admin";
-import { updateAccount,deleteAccount } from "@/core/services/accountService";
+import { updateAccount, deleteAccount } from "@/core/services/accountService";
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+// ID de teste temporário
+const TEST_USER_ID = "Di7CMExsxfYG1ZiMXMmHUPecIAZ2";
 
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    /* const idToken = request.headers.get("Authorization")?.split('Bearer ')[1];
-      if(!idToken){
-          return NextResponse.json({message: "Acesso não autorizado. Token encontrado"}, {status: 401});
-      }
-
-      const decodedtoken = await adminAuth().verifyIdToken(idToken);
-      const userId = decodedtoken.uid;
-      */
-
-    const userId = "Di7CMExsxfYG1ZiMXMmHUPecIAZ2";
-
-    const accountId = params.id;
+    const { id } = await params;
     const accountdata = await request.json();
 
-    const accountUpdate = await updateAccount(userId, accountId, accountdata);
+    const accountUpdate = await updateAccount(TEST_USER_ID, id, accountdata);
 
     return NextResponse.json(accountUpdate, { status: 200 });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("Erro ao atualizar conta:", error);
-    return NextResponse.json({ message: "Erro ao atualizar conta." }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Erro desconhecido";
+    return NextResponse.json({ message }, { status: 500 });
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
-  const adminApp = initializeAdminApp();
-
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
 
-    /* const idToken = request.headers.get("Authorization")?.split('Bearer ')[1];
-      if(!idToken){
-          return NextResponse.json({message: "Acesso não autorizado. Token encontrado"}, {status: 401});
-      }
-
-      const decodedtoken = await adminAuth().verifyIdToken(idToken);
-      const userId = decodedtoken.uid;
-      */
-
-    const userId = "Di7CMExsxfYG1ZiMXMmHUPecIAZ2";
-
-    const accountId = params.id;
-
-    const deleteAcc = await deleteAccount(userId, accountId);
+    await deleteAccount(TEST_USER_ID, id);
 
     return NextResponse.json({ message: "Conta deletada com sucesso." }, { status: 200 });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("Erro ao deletar conta:", error);
-    return NextResponse.json({ message: "Erro ao deletar conta." }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Erro desconhecido";
+    return NextResponse.json({ message }, { status: 500 });
   }
 }

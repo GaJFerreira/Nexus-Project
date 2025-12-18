@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { updateTransaction, deleteTransaction } from "@/core/services/transactionsservice";
 
+// ID de teste temporário
 const TEST_USER_ID = "Di7CMExsxfYG1ZiMXMmHUPecIAZ2";
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
