@@ -1,64 +1,34 @@
 import { NextResponse } from "next/server";
-import { initializeAdminApp } from "@/lib/firebase/admin";
-import { auth as adminAuth, firestore } from "firebase-admin";
-import { updateAccount, deleteAccount } from "@/core/services/accountService";
+import { updateTransaction, deleteTransaction } from "@/core/services/transactionsservice";
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
-    const adminApp = initializeAdminApp();
+const TEST_USER_ID = "Di7CMExsxfYG1ZiMXMmHUPecIAZ2";
 
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        /* const idToken = request.headers.get("Authorization")?.split('Bearer ')[1];
-          if(!idToken){
-              return NextResponse.json({message: "Acesso não autorizado. Token encontrado"}, {status: 401});
-          }
-  
-          const decodedtoken = await adminAuth().verifyIdToken(idToken);
-          const userId = decodedtoken.uid;
-          */
+        const { id } = await params;
+        const transactionData = await request.json();
 
-        const userId = "Di7CMExsxfYG1ZiMXMmHUPecIAZ2";
+        const updatedTransaction = await updateTransaction(TEST_USER_ID, id, transactionData);
 
-        const accountId = params.id;
-        const accountdata = await request.json();
-
-        const accountUpdate = await updateAccount(userId, accountId, accountdata);
-
-    } catch (error: any) {
-        console.error("Erro ao atualizar trasação:", error)
+        return NextResponse.json(updatedTransaction, { status: 200 });
+    } catch (error) {
+        console.error("Erro ao atualizar transação:", error);
+        const message = error instanceof Error ? error.message : "Erro desconhecido";
+        return NextResponse.json({ message }, { status: 500 });
     }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
-    const adminApp = initializeAdminApp();
-
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        /* const idToken = request.headers.get("Authorization")?.split('Bearer ')[1];
-       if(!idToken){
-           return NextResponse.json({message: "Acesso não autorizado. Token encontrado"}, {status: 401});
-       }
-
-       const decodedtoken = await adminAuth().verifyIdToken(idToken);
-       const userId = decodedtoken.uid;
-       */
-
-        const transactionId = params.id;
-        const userId = "Di7CMExsxfYG1ZiMXMmHUPecIAZ2";
-
-        const db = adminApp.firestore();
-        const transactionRef = db.collection('transactions').doc(transactionId);
-
-        const doc = await transactionRef.get();
-        if (!doc.exists || doc.data()?.userId !== userId) {
-            return NextResponse.json({ message: "Transaçâo não encontrada ou não pertence ao usuario" }, { status: 404 });
-        }
-
-        await transactionRef.delete();
+        const { id } = await params;
+        
+        await deleteTransaction(TEST_USER_ID, id);
 
         return NextResponse.json({ message: "Transação deletada com sucesso" }, { status: 200 });
 
-
-    } catch (error: any) {
+    } catch (error) {
         console.error("Erro ao deletar transação:", error);
-        return NextResponse.json({ message: "Erro ao deletar transação." }, { status: 500 });
+        const message = error instanceof Error ? error.message : "Erro desconhecido";
+        return NextResponse.json({ message }, { status: 500 });
     }
 }

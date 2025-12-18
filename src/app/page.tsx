@@ -1,6 +1,5 @@
 import { getAccountsByUserId, createAccount } from "@/core/services/accountService";
-import { getTransactions, createTransaction } from "@/core/services/transactionsservice"; // Atenção ao nome do arquivo se você não renomeou
-import { Transaction } from "@/core/models";
+import { getTransactions, createTransaction } from "@/core/services/transactionsservice";
 import { Wallet, ArrowUpCircle, ArrowDownCircle, DollarSign, Calendar, Database } from "lucide-react";
 import { revalidatePath } from "next/cache";
 
