@@ -1,12 +1,12 @@
 import { getAccountsByUserId, createAccount } from "@/core/services/accountService";
 import { getTransactions, createTransaction } from "@/core/services/transactionsservice";
-import { Wallet, ArrowUpCircle, ArrowDownCircle, DollarSign, Calendar, Database } from "lucide-react";
+import { Wallet, ArrowUpCircle, ArrowDownCircle, DollarSign, Calendar, Database, Plus } from "lucide-react";
 import { revalidatePath } from "next/cache";
+import Link from "next/link"; // Importante: Importar o Link
 
-// ID HARDCODED PARA TESTES (O mesmo dos services)
 const TEST_USER_ID = "Di7CMExsxfYG1ZiMXMmHUPecIAZ2";
 
-export const dynamic = 'force-dynamic'; // Garante que a página não faça cache estático dos dados
+export const dynamic = 'force-dynamic';
 
 export default async function Dashboard() {
   const accounts = await getAccountsByUserId(TEST_USER_ID);
@@ -28,7 +28,6 @@ export default async function Dashboard() {
 
   async function seedDatabase() {
     "use server";
-    
     try {
       console.log("Iniciando seed de teste...");
       
@@ -59,9 +58,7 @@ export default async function Dashboard() {
           date: new Date()
         });
       }
-
       revalidatePath("/");
-      
     } catch (error) {
       console.error("Erro ao rodar seed:", error);
     }
@@ -71,29 +68,40 @@ export default async function Dashboard() {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         
-        <div className="flex justify-between items-center">
+        {/* Cabeçalho */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Nexus Dashboard</h1>
             <p className="text-gray-500">Visão geral da sua vida financeira</p>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="text-sm text-gray-400">
-              Usuário Teste: {TEST_USER_ID.slice(0, 8)}...
-            </div>
-            
+          
+          <div className="flex items-center gap-3">
+            {/* Botão de Seed (Apenas para Testes - Pode remover depois) */}
             <form action={seedDatabase}>
               <button 
                 type="submit"
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium shadow-sm"
+                className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium"
+                title="Gerar dados fictícios"
               >
                 <Database className="w-4 h-4" />
-                Gerar Dados de Teste
+                <span className="hidden sm:inline">Seed</span>
               </button>
             </form>
+
+            {/* BOTÃO NOVA TRANSAÇÃO (O Principal) */}
+            <Link 
+              href="/transactions/new" 
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium shadow-md shadow-purple-200"
+            >
+              <Plus className="w-4 h-4" />
+              Nova Transação
+            </Link>
           </div>
         </div>
 
+        {/* Cards de Resumo (KPIs) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Card Saldo */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex justify-between items-start">
               <div>
@@ -106,6 +114,7 @@ export default async function Dashboard() {
             </div>
           </div>
 
+          {/* Card Receitas */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex justify-between items-start">
               <div>
@@ -118,6 +127,7 @@ export default async function Dashboard() {
             </div>
           </div>
 
+          {/* Card Despesas */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex justify-between items-start">
               <div>
@@ -133,14 +143,16 @@ export default async function Dashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
+          {/* Lista de Transações */}
           <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-6 border-b border-gray-100 flex justify-between items-center">
               <h3 className="font-semibold text-gray-900">Transações Recentes</h3>
+              <Link href="/transactions" className="text-sm text-purple-600 hover:text-purple-700 font-medium">Ver todas</Link>
             </div>
             <div className="divide-y divide-gray-100">
               {transactions.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
-                  Nenhuma transação encontrada. Clique em &quot;Gerar Dados de Teste&quot; para popular o banco.
+                  Nenhuma transação encontrada. Comece adicionando uma!
                 </div>
               ) : (
                 transactions.slice(0, 5).map((t) => (
@@ -170,13 +182,18 @@ export default async function Dashboard() {
             </div>
           </div>
 
+          {/* Lista de Contas */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 h-fit">
-            <div className="p-6 border-b border-gray-100">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
               <h3 className="font-semibold text-gray-900">Minhas Contas</h3>
+              {/* Botão opcional para criar conta */}
+              <Link href="/accounts/new" className="text-xs bg-gray-100 p-2 rounded-lg hover:bg-gray-200">
+                <Plus className="w-4 h-4 text-gray-600" />
+              </Link>
             </div>
             <div className="p-4 space-y-4">
               {accounts.length === 0 ? (
-                 <div className="text-center text-gray-500 text-sm">Nenhuma conta cadastrada.</div>
+                 <div className="text-center text-gray-500 text-sm py-4">Nenhuma conta cadastrada.</div>
               ) : (
                 accounts.map((acc) => (
                   <div key={acc.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-100">
