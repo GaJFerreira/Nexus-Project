@@ -96,6 +96,22 @@ export default async function Dashboard() {
               <Plus className="w-4 h-4" />
               Nova Transação
             </Link>
+
+            <Link
+              href="/accounts"
+              className="flex intens-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gay-50 transition-collors text-sm font-medium shadow-sm">
+                <Wallet className="w-4 h-4" />
+                Contas
+            </Link>
+
+            <Link
+              href="/transactions"
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
+                <Wallet className="w-4 h-4" />
+                Transações
+            </Link>
+
+
           </div>
         </div>
 
