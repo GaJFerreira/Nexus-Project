@@ -2,10 +2,27 @@
 
 import Link from "next/link";
 import { LogIn, LogOut, User, Home, List, Layers, Wallet, Receipt, UserPlus} from "lucide-react";
+import { useState } from "react";
 
 const Header = () => {
 
-    const login = true;
+    const [login, setLogin] = useState(false);
+
+    const handleLogOut = async () => {
+        try{
+            setLogin(false);
+        } catch (error){
+            console.log(error);
+        }
+    }
+
+    const handleLogin = async () => {
+        try{
+            setLogin(true);
+        } catch (error){
+            console.log(error);
+        }
+    }
 
     return(
         <header className="bg-white shadow-sm border-b border-purple-200 sticky top-0 z-50">
@@ -80,10 +97,11 @@ const Header = () => {
                                         Perfil
                                     </Link>
 
-                                    <Link href={"/logout"} className="px-3 py-2 rounded-md text-sm font-medium flex items-center gap-1 hover:text-red-500 transition hover:bg-gray-100">
+                                    <button onClick={handleLogOut} className="px-3 py-2 rounded-md text-sm font-medium flex items-center gap-1 hover:text-red-500 transition hover:bg-gray-100">
                                         <LogOut className="w-5 h-5" />
                                         Sair
-                                    </Link>
+                                    </button>
+
                                 </div>
 
                             </nav>
