@@ -1,6 +1,6 @@
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
+import { getAuth, Auth } from 'firebase/auth';
+import { getFirestore, Firestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -11,9 +11,23 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+let app: FirebaseApp;
+let auth: Auth;
+let db: Firestore;
 
-const auth = getAuth(app);
-const db = getFirestore(app);
+// Proteção para o build do Next.js (prerendering)
+// Inicializa apenas se tivermos a API Key ou se estivermos no navegador
+if (firebaseConfig.apiKey) {
+    app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    auth = getAuth(app);
+    db = getFirestore(app);
+} else {
+    // Mock simples para evitar erros de importação durante o build no servidor
+    // O build do Next.js tenta renderizar as páginas estaticamente, e se o Firebase
+    // inicializar sem chaves, ele quebra o build.
+    app = {} as FirebaseApp;
+    auth = {} as Auth;
+    db = {} as Firestore;
+}
 
 export { app, auth, db };
