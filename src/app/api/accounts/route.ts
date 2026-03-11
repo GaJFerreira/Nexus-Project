@@ -1,13 +1,34 @@
 import { NextResponse } from "next/server";
 import { createAccount, getAccountsByUserId } from "@/core/services/accountService";
+import { initializeAdminApp } from '@/lib/firebase/admin';
+import { auth as adminAuth } from 'firebase-admin';
 
-// ID de teste temporário
-const TEST_USER_ID = "Di7CMExsxfYG1ZiMXMmHUPecIAZ2";
+async function getUserIdFromRequest(request: Request) {
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return null;
+  }
+
+  const idToken = authHeader.split('Bearer ')[1];
+  try {
+    initializeAdminApp();
+    const decodedToken = await adminAuth().verifyIdToken(idToken);
+    return decodedToken.uid;
+  } catch (error) {
+    console.error('Erro ao verificar token:', error);
+    return null;
+  }
+}
 
 export async function POST(request: Request) {
   try {
+    const userId = await getUserIdFromRequest(request);
+    if (!userId) {
+      return NextResponse.json({ message: "Não autorizado" }, { status: 401 });
+    }
+
     const account = await request.json();
-    const newAccount = await createAccount(TEST_USER_ID, account);
+    const newAccount = await createAccount(userId, account);
 
     return NextResponse.json(newAccount, { status: 201 });
 
@@ -18,9 +39,14 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const accounts = await getAccountsByUserId(TEST_USER_ID);
+    const userId = await getUserIdFromRequest(request);
+    if (!userId) {
+      return NextResponse.json({ message: "Não autorizado" }, { status: 401 });
+    }
+
+    const accounts = await getAccountsByUserId(userId);
     return NextResponse.json(accounts, { status: 200 });
 
   } catch (error) {

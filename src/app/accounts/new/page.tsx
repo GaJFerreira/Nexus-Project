@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Landmark, CreditCard, Wallet, Banknote, PiggyBank } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import DashboardClient from "@/components/DashboardClient";
+import { auth } from "@/lib/firebase/client";
 
 // Esquema de Validação
 const accountSchema = z.object({
@@ -47,7 +49,17 @@ const accountSchema = z.object({
 
 type AccountFormData = z.infer<typeof accountSchema>;
 
+export const dynamic = "force-dynamic";
+
 export default function NewAccountPage() {
+  return (
+    <DashboardClient>
+      {() => <NewAccountForm />}
+    </DashboardClient>
+  );
+}
+
+function NewAccountForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -69,6 +81,9 @@ export default function NewAccountPage() {
   const onSubmit = async (data: AccountFormData) => {
     setLoading(true);
     try {
+      const idToken = await auth.currentUser?.getIdToken();
+      if (!idToken) throw new Error("Usuário não autenticado");
+
       const saldoInCents = Math.round(Number(data.saldo.replace(',', '.')) * 100);
       
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -86,12 +101,15 @@ export default function NewAccountPage() {
 
       const res = await fetch("/api/accounts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${idToken}`
+        },
         body: JSON.stringify(payload),
       });
 
       if (res.ok) {
-        router.push("/page"); 
+        router.push("/accounts"); 
         router.refresh();
       } else {
         alert("Erro ao criar conta");

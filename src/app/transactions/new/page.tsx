@@ -7,7 +7,8 @@ import { useRouter } from "next/navigation"
 import { ArrowLeft, DollarSign, ArrowUpCircle, ArrowDownCircle, CreditCard, Tag } from "lucide-react";
 import Link from "next/link"
 import { useState, useEffect } from "react";
-import { Transaction } from "firebase-admin/firestore"
+import { auth } from "@/lib/firebase/client";
+import DashboardClient from "@/components/DashboardClient";
 
 const transactionsSchema = z.object({
   description: z.string().min(3, "A descrição deve ter pelo menos 3 caracteres"),  
@@ -21,8 +22,17 @@ const transactionsSchema = z.object({
 
 type TransactionsFormData = z.infer<typeof transactionsSchema>;
 
-export default function TransactionsForm(){
+export const dynamic = "force-dynamic";
 
+export default function TransactionsForm(){
+  return (
+    <DashboardClient>
+      {() => <TransactionsFormContent />}
+    </DashboardClient>
+  );
+}
+
+function TransactionsFormContent(){
   const router = useRouter();
 
   const [accounts, setAccounts] = useState<any[]>([]);
@@ -69,7 +79,7 @@ export default function TransactionsForm(){
       });
 
       if (res.ok){
-        router.push("/");
+        router.push("/transactions");
         router.refresh();
       } else {
         alert("Erro ao salvar transação");
