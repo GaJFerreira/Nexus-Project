@@ -14,6 +14,8 @@ export async function createAccount(userId: string, account: Omit<Account, 'id' 
         nome: account.nome,
         saldo: account.saldo,
         tipo: account.tipo,
+        ...(account.possuiCartaoCredito !== undefined && { possuiCartaoCredito: account.possuiCartaoCredito }),
+        ...(account.faturaAtual !== undefined && { faturaAtual: account.faturaAtual }),
         ...(account.diaFechamento && { diaFechamento: account.diaFechamento }),
         ...(account.diaVencimento && { diaVencimento: account.diaVencimento }),
         ...(account.limiteCredito && { limiteCredito: account.limiteCredito }),
@@ -47,6 +49,8 @@ export async function getAccountsByUserId(userId: string): Promise<Account[]> {
             nome: data.nome,
             saldo: data.saldo,
             tipo: data.tipo,
+            possuiCartaoCredito: data.possuiCartaoCredito,
+            faturaAtual: data.faturaAtual,
             diaFechamento: data.diaFechamento,
             diaVencimento: data.diaVencimento,
             limiteCredito: data.limiteCredito
@@ -71,6 +75,8 @@ export async function updateAccount(userId: string, accountId: string, account: 
         nome: account.nome,
         saldo: account.saldo,
         tipo: account.tipo,
+        possuiCartaoCredito: account.possuiCartaoCredito,
+        faturaAtual: account.faturaAtual,
         diaFechamento: account.diaFechamento,
         diaVencimento: account.diaVencimento,
         limiteCredito: account.limiteCredito

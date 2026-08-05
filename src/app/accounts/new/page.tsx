@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Landmark, CreditCard, Wallet, Banknote, PiggyBank } from "lucide-react";
+import { ArrowLeft, Landmark, CreditCard, Wallet, Banknote, PiggyBank, Building2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import DashboardClient from "@/components/DashboardClient";
@@ -12,17 +12,18 @@ import { auth } from "@/lib/firebase/client";
 
 // Esquema de Validação
 const accountSchema = z.object({
-  nome: z.string().min(3, "O nome deve ter pelo menos 3 caracteres"),
+  nome: z.string().min(2, "O nome deve ter pelo menos 2 caracteres"),
   saldo: z.string().refine((val) => !isNaN(Number(val.replace(',', '.'))), {
     message: "Valor inválido",
   }),
-  tipo: z.enum(['checking', 'savings', 'credit_card', 'investment', 'cash']),
-  // Campos opcionais que viram obrigatórios se for cartão
+  tipo: z.enum(['bank', 'checking', 'savings', 'credit_card', 'investment', 'cash']),
+  possuiCartaoCredito: z.boolean(),
+  faturaAtual: z.string().optional(),
   limiteCredito: z.string().optional(),
   diaFechamento: z.string().optional(),
   diaVencimento: z.string().optional(),
 }).superRefine((data, ctx) => {
-  if (data.tipo === 'credit_card') {
+  if (data.possuiCartaoCredito || data.tipo === 'credit_card') {
     if (!data.limiteCredito) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -67,16 +68,20 @@ function NewAccountForm() {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<AccountFormData>({
     resolver: zodResolver(accountSchema),
     defaultValues: {
-      tipo: "checking",
-      saldo: "0,00"
+      tipo: "bank",
+      saldo: "0,00",
+      faturaAtual: "0,00",
+      possuiCartaoCredito: true
     },
   });
 
   const tipoConta = watch("tipo");
+  const possuiCartaoCredito = watch("possuiCartaoCredito");
 
   const onSubmit = async (data: AccountFormData) => {
     setLoading(true);
@@ -91,9 +96,12 @@ function NewAccountForm() {
         nome: data.nome,
         saldo: saldoInCents,
         tipo: data.tipo,
+        possuiCartaoCredito: Boolean(data.possuiCartaoCredito || data.tipo === 'credit_card'),
       };
 
-      if (data.tipo === 'credit_card') {
+      if (data.possuiCartaoCredito || data.tipo === 'credit_card') {
+        const faturaInCents = Math.round(Number((data.faturaAtual || "0").replace(',', '.')) * 100);
+        payload.faturaAtual = isNaN(faturaInCents) ? 0 : faturaInCents;
         payload.limiteCredito = Math.round(Number(data.limiteCredito?.replace(',', '.')) * 100);
         payload.diaFechamento = Number(data.diaFechamento);
         payload.diaVencimento = Number(data.diaVencimento);
@@ -129,7 +137,7 @@ function NewAccountForm() {
           <Link href="/accounts" className="p-2 hover:bg-gray-100 rounded-full transition-colors">
             <ArrowLeft className="w-6 h-6 text-gray-600" />
           </Link>
-          <h1 className="text-xl font-semibold text-gray-900">Nova Conta</h1>
+          <h1 className="text-xl font-semibold text-gray-900">Nova Conta Bancária</h1>
         </div>
       </header>
 
@@ -139,26 +147,26 @@ function NewAccountForm() {
           {/* Nome da Conta */}
           <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nome da Conta</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nome da Instituição / Banco</label>
               <input
                 type="text"
-                placeholder="Ex: Nubank, Itaú, Carteira..."
-                className="block w-full px-3 py-3 border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 border text-black"
+                placeholder="Ex: Nubank, Itaú, Santander, Carteira..."
+                className="block w-full px-3 py-3 border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 border text-black font-semibold"
                 {...register("nome")}
               />
               {errors.nome && <p className="text-red-500 text-xs mt-1">{errors.nome.message}</p>}
             </div>
 
-            {/* Saldo Inicial */}
+            {/* Saldo da Conta Corrente */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {tipoConta === 'credit_card' ? 'Fatura Atual (R$)' : 'Saldo Atual (R$)'}
+                Saldo na Conta Corrente / Débito (R$)
               </label>
               <div className="relative">
                 <input
                   type="text"
                   placeholder="0,00"
-                  className="block w-full px-3 py-3 text-lg border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 border text-black"
+                  className="block w-full px-3 py-3 text-lg border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 border text-black font-bold"
                   {...register("saldo")}
                 />
               </div>
@@ -168,18 +176,24 @@ function NewAccountForm() {
 
           {/* Tipo de Conta */}
           <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-            <label className="block text-sm font-medium text-gray-700 mb-3">Tipo de Conta</label>
+            <label className="block text-sm font-medium text-gray-700 mb-3">Tipo de Instituição</label>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <label className={`cursor-pointer border rounded-xl p-3 flex flex-col items-center gap-2 transition-all ${tipoConta === 'bank' ? 'bg-purple-50 border-purple-200 text-purple-700' : 'hover:border-purple-200 text-gray-600'}`}>
+                <input type="radio" value="bank" {...register("tipo")} className="sr-only" />
+                <Building2 className="w-6 h-6" />
+                <span className="text-sm font-medium">Banco Completo</span>
+              </label>
+
               <label className={`cursor-pointer border rounded-xl p-3 flex flex-col items-center gap-2 transition-all ${tipoConta === 'checking' ? 'bg-purple-50 border-purple-200 text-purple-700' : 'hover:border-purple-200 text-gray-600'}`}>
                 <input type="radio" value="checking" {...register("tipo")} className="sr-only" />
                 <Landmark className="w-6 h-6" />
-                <span className="text-sm font-medium">Corrente</span>
+                <span className="text-sm font-medium">Conta Corrente</span>
               </label>
 
               <label className={`cursor-pointer border rounded-xl p-3 flex flex-col items-center gap-2 transition-all ${tipoConta === 'credit_card' ? 'bg-purple-50 border-purple-200 text-purple-700' : 'hover:border-purple-200 text-gray-600'}`}>
                 <input type="radio" value="credit_card" {...register("tipo")} className="sr-only" />
                 <CreditCard className="w-6 h-6" />
-                <span className="text-sm font-medium">Cartão</span>
+                <span className="text-sm font-medium">Só Cartão</span>
               </label>
 
               <label className={`cursor-pointer border rounded-xl p-3 flex flex-col items-center gap-2 transition-all ${tipoConta === 'savings' ? 'bg-purple-50 border-purple-200 text-purple-700' : 'hover:border-purple-200 text-gray-600'}`}>
@@ -202,45 +216,73 @@ function NewAccountForm() {
             </div>
           </div>
 
-          {/* Campos Específicos de Cartão de Crédito */}
-          {tipoConta === 'credit_card' && (
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4 animate-in fade-in slide-in-from-top-4">
-              <h3 className="font-semibold text-gray-900 border-b pb-2">Detalhes do Cartão</h3>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Limite Total (R$)</label>
+          {/* Toggle / Checkbox de Cartão de Crédito Integrado */}
+          {tipoConta !== 'cash' && (
+            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-gray-900">Cartão de Crédito Vinculado</h3>
+                  <p className="text-xs text-gray-500">Esta conta possui limite de crédito para compras parceladas ou à vista?</p>
+                </div>
                 <input
-                  type="text"
-                  placeholder="Ex: 5000,00"
-                  className="block w-full px-3 py-3 border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 border text-black"
-                  {...register("limiteCredito")}
+                  type="checkbox"
+                  checked={possuiCartaoCredito}
+                  onChange={(e) => setValue("possuiCartaoCredito", e.target.checked)}
+                  className="w-5 h-5 text-purple-600 rounded border-gray-300 focus:ring-purple-500 cursor-pointer"
                 />
-                {errors.limiteCredito && <p className="text-red-500 text-xs mt-1">{errors.limiteCredito.message}</p>}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Dia Fechamento</label>
-                  <select {...register("diaFechamento")} className="block w-full px-3 py-3 border-gray-300 rounded-lg text-black bg-white">
-                    <option value="">Dia...</option>
-                    {Array.from({length: 31}, (_, i) => i + 1).map(day => (
-                      <option key={day} value={day}>{day}</option>
-                    ))}
-                  </select>
-                  {errors.diaFechamento && <p className="text-red-500 text-xs mt-1">{errors.diaFechamento.message}</p>}
-                </div>
+              {/* Campos de Cartão de Crédito */}
+              {(possuiCartaoCredito || tipoConta === 'credit_card') && (
+                <div className="pt-4 border-t border-purple-100 space-y-4 animate-in fade-in">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Limite Total de Crédito (R$)</label>
+                      <input
+                        type="text"
+                        placeholder="Ex: 5000,00"
+                        className="block w-full px-3 py-3 border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 border text-black font-semibold"
+                        {...register("limiteCredito")}
+                      />
+                      {errors.limiteCredito && <p className="text-red-500 text-xs mt-1">{errors.limiteCredito.message}</p>}
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Dia Vencimento</label>
-                  <select {...register("diaVencimento")} className="block w-full px-3 py-3 border-gray-300 rounded-lg text-black bg-white">
-                    <option value="">Dia...</option>
-                    {Array.from({length: 31}, (_, i) => i + 1).map(day => (
-                      <option key={day} value={day}>{day}</option>
-                    ))}
-                  </select>
-                  {errors.diaVencimento && <p className="text-red-500 text-xs mt-1">{errors.diaVencimento.message}</p>}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Fatura Atual do Cartão (R$)</label>
+                      <input
+                        type="text"
+                        placeholder="0,00"
+                        className="block w-full px-3 py-3 border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 border text-black font-semibold"
+                        {...register("faturaAtual")}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Dia Fechamento Fatura</label>
+                      <select {...register("diaFechamento")} className="block w-full px-3 py-3 border-gray-300 rounded-lg text-black bg-white font-semibold">
+                        <option value="">Dia...</option>
+                        {Array.from({length: 31}, (_, i) => i + 1).map(day => (
+                          <option key={day} value={day}>Dia {day}</option>
+                        ))}
+                      </select>
+                      {errors.diaFechamento && <p className="text-red-500 text-xs mt-1">{errors.diaFechamento.message}</p>}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Dia Vencimento Fatura</label>
+                      <select {...register("diaVencimento")} className="block w-full px-3 py-3 border-gray-300 rounded-lg text-black bg-white font-semibold">
+                        <option value="">Dia...</option>
+                        {Array.from({length: 31}, (_, i) => i + 1).map(day => (
+                          <option key={day} value={day}>Dia {day}</option>
+                        ))}
+                      </select>
+                      {errors.diaVencimento && <p className="text-red-500 text-xs mt-1">{errors.diaVencimento.message}</p>}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
 
@@ -249,11 +291,11 @@ function NewAccountForm() {
             disabled={loading}
             className="w-full bg-purple-600 text-white py-4 rounded-xl font-semibold text-lg shadow-lg hover:bg-purple-700 focus:ring-4 focus:ring-purple-200 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {loading ? "Criando Conta..." : "Criar Conta"}
+            {loading ? "Criando Conta..." : "Criar Conta Bancária"}
           </button>
 
         </form>
       </main>
     </div>
   );
-}
+}

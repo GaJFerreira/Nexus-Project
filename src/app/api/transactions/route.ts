@@ -51,6 +51,8 @@ export async function GET(request: Request) {
             type: searchParams.get('type') as 'income' | 'expense' | null,
             month: searchParams.get('month') ? parseInt(searchParams.get('month')!) : undefined,
             year: searchParams.get('year') ? parseInt(searchParams.get('year')!) : undefined,
+            startDate: searchParams.get('startDate') ? new Date(searchParams.get('startDate')!) : undefined,
+            endDate: searchParams.get('endDate') ? new Date(searchParams.get('endDate')!) : undefined,
         };
 
         const transactions = await getTransactions(userId, filters);

@@ -1,23 +1,495 @@
 @import "tailwindcss";
 
+/* ============================================================
+   NEXUS — Design System Tokens
+   ============================================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Background layers */
+  --bg-base: #F4F4EF;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FAFAF7;
+  --bg-overlay: rgba(255, 255, 255, 0.85);
+
+  /* Borders */
+  --border: #E5E5E0;
+  --border-subtle: #EEEEEA;
+  --border-strong: #D0D0C8;
+
+  /* Text */
+  --text-primary: #111110;
+  --text-secondary: #6B6B68;
+  --text-tertiary: #9B9B98;
+  --text-inverse: #FAFAF7;
+
+  /* Accent — Índigo profundo */
+  --accent: #5046E4;
+  --accent-hover: #3D35C0;
+  --accent-subtle: #EEF0FD;
+  --accent-subtle-hover: #E2E5FA;
+  --accent-muted: #A9A3F0;
+  --accent-foreground: #FFFFFF;
+
+  /* Semantic */
+  --success: #1A9B6C;
+  --success-bg: #EDFAF4;
+  --success-muted: #77C5A3;
+  --danger: #C94040;
+  --danger-bg: #FDF0F0;
+  --danger-muted: #E09090;
+  --warning: #C47B1A;
+  --warning-bg: #FEF6EC;
+  --warning-muted: #E2B070;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0,0,0,0.03);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0,0,0,0.03);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.10), 0 0 0 1px rgba(0,0,0,0.03);
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* Font */
+  --font-sans: var(--font-geist-sans), 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), 'JetBrains Mono', monospace;
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-base: 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-slow: 350ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ============================================================
+   DARK MODE — Activated via .dark class on <html>
+   ============================================================ */
+
+.dark {
+  --bg-base: #0E0E11;
+  --bg-surface: #17171C;
+  --bg-elevated: #1E1E25;
+  --bg-overlay: rgba(23, 23, 28, 0.90);
+
+  --border: #2A2A33;
+  --border-subtle: #222228;
+  --border-strong: #3A3A46;
+
+  --text-primary: #F0F0EC;
+  --text-secondary: #9B9B9A;
+  --text-tertiary: #6A6A68;
+  --text-inverse: #111110;
+
+  --accent: #7B6CF6;
+  --accent-hover: #9288F8;
+  --accent-subtle: #1C1A38;
+  --accent-subtle-hover: #252248;
+  --accent-muted: #5046C0;
+  --accent-foreground: #FFFFFF;
+
+  --success: #22C87A;
+  --success-bg: #0E2B1E;
+  --success-muted: #1A6644;
+  --danger: #F07070;
+  --danger-bg: #2B1010;
+  --danger-muted: #6B2020;
+  --warning: #F0A030;
+  --warning-bg: #2B1E0A;
+  --warning-muted: #6B4A10;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.03);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.04);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255,255,255,0.04);
+}
+
+/* ============================================================
+   GLOBAL BASE STYLES
+   ============================================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
 }
 
 body {
-  background: #ffffff;
-  color: #171717;
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  transition: background-color var(--transition-base), color var(--transition-base);
+}
+
+/* ============================================================
+   TYPOGRAPHY SCALE
+   ============================================================ */
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--text-primary);
+}
+
+/* ============================================================
+   UTILITY CLASSES (Custom tokens)
+   ============================================================ */
+
+.card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-strong);
+}
+
+.btn-primary {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.6rem 1.25rem;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-primary:hover {
+  background-color: var(--accent-hover);
+  box-shadow: 0 4px 12px rgba(80, 70, 228, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 0.6rem 1.25rem;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-secondary:hover {
+  background-color: var(--bg-surface);
+  border-color: var(--border-strong);
+}
+
+.input-field {
+  width: 100%;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
+}
+
+.input-field::placeholder {
+  color: var(--text-tertiary);
+}
+
+.input-field:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(80, 70, 228, 0.12);
+  background-color: var(--bg-surface);
+}
+
+/* Chip / Badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+
+.badge-accent {
+  background-color: var(--accent-subtle);
+  color: var(--accent);
+}
+
+.badge-success {
+  background-color: var(--success-bg);
+  color: var(--success);
+}
+
+.badge-danger {
+  background-color: var(--danger-bg);
+  color: var(--danger);
+}
+
+/* Scroll bar refinement */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* Transitions for theme switching */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Override for elements that should NOT transition */
+button, a, input, select, textarea, [role="button"] {
+  transition: all var(--transition-fast);
+}
+
+/* ============================================================
+   DARK MODE — Global Tailwind Class Overrides
+   Covers all components that still use Tailwind utility classes
+   ============================================================ */
+
+/* ─── Backgrounds ─────────────────────────────────────────── */
+.dark .bg-white                { background-color: var(--bg-surface) !important; }
+.dark .bg-gray-50              { background-color: var(--bg-base) !important; }
+.dark .bg-gray-100             { background-color: var(--bg-elevated) !important; }
+.dark .bg-gray-200             { background-color: #2a2a34 !important; }
+.dark .bg-gray-800             { background-color: #1a1a1f !important; }
+.dark .bg-gray-900             { background-color: #0e0e11 !important; }
+
+/* Surface variants */
+.dark .bg-purple-50            { background-color: var(--accent-subtle) !important; }
+.dark .bg-purple-100           { background-color: var(--accent-subtle) !important; }
+.dark .bg-indigo-50            { background-color: var(--accent-subtle) !important; }
+.dark .bg-indigo-100           { background-color: var(--accent-subtle) !important; }
+.dark .bg-green-50             { background-color: var(--success-bg) !important; }
+.dark .bg-red-50               { background-color: var(--danger-bg) !important; }
+.dark .bg-yellow-50            { background-color: var(--warning-bg) !important; }
+.dark .bg-orange-50            { background-color: var(--warning-bg) !important; }
+.dark .bg-blue-50              { background-color: #0d1b2e !important; }
+
+/* ALL white/gray backgrounds — catch all combinations */
+.dark [class*="bg-white"]      { background-color: var(--bg-surface) !important; }
+.dark [class*="bg-gray-50"]    { background-color: var(--bg-base) !important; }
+.dark [class*="bg-gray-100"]   { background-color: var(--bg-elevated) !important; }
+
+/* bg-gray-50/50 (with Tailwind opacity) */
+.dark .bg-gray-50\/50          { background-color: var(--bg-elevated) !important; }
+.dark .bg-white\/20            { background-color: rgba(255,255,255,0.15) !important; }
+
+/* rounded-3xl modal panels */
+.dark .rounded-3xl             { background-color: inherit; }
+
+
+/* Gradient backgrounds */
+.dark .bg-gradient-to-r.from-purple-50.to-indigo-50,
+.dark .from-purple-50.to-indigo-50 { background: var(--bg-elevated) !important; }
+.dark [class*="from-purple-"].to-indigo-700,
+.dark .from-purple-700          { /* keep accent gradients */ }
+
+/* Fundo/backdrop do corpo completo */
+.dark .min-h-screen            { background-color: var(--bg-base); }
+
+/* ─── Text ────────────────────────────────────────────────── */
+.dark .text-gray-900           { color: var(--text-primary) !important; }
+.dark .text-gray-800           { color: var(--text-primary) !important; }
+.dark .text-gray-700           { color: var(--text-secondary) !important; }
+.dark .text-gray-600           { color: var(--text-secondary) !important; }
+.dark .text-gray-500           { color: var(--text-tertiary) !important; }
+.dark .text-gray-400           { color: var(--text-tertiary) !important; }
+.dark .text-gray-300           { color: #6a6a68 !important; }
+.dark .text-black              { color: var(--text-primary) !important; }
+
+/* Accent text — keeps colors */
+.dark .text-purple-600         { color: var(--accent) !important; }
+.dark .text-purple-700         { color: var(--accent) !important; }
+.dark .text-indigo-600         { color: var(--accent) !important; }
+.dark .text-indigo-700         { color: var(--accent) !important; }
+
+/* ─── Borders ─────────────────────────────────────────────── */
+.dark .border-gray-100         { border-color: var(--border-subtle) !important; }
+.dark .border-gray-200         { border-color: var(--border) !important; }
+.dark .border-gray-300         { border-color: var(--border-strong) !important; }
+.dark .border-purple-100       { border-color: var(--border) !important; }
+.dark .border-purple-200       { border-color: var(--border) !important; }
+.dark .border-indigo-100       { border-color: var(--border) !important; }
+.dark .border-b.border-gray-100,
+.dark .border-t.border-gray-100 { border-color: var(--border-subtle) !important; }
+
+/* ─── Cards / Surfaces ────────────────────────────────────── */
+.dark .shadow-sm               { box-shadow: var(--shadow-sm) !important; }
+.dark .shadow-md               { box-shadow: var(--shadow-md) !important; }
+.dark .shadow-xl               { box-shadow: var(--shadow-lg) !important; }
+
+/* Card-like containers */
+.dark .rounded-2xl.bg-white,
+.dark .rounded-xl.bg-white,
+.dark .rounded-lg.bg-white     { background-color: var(--bg-surface) !important; }
+
+.dark .rounded-2xl.bg-gray-50,
+.dark .rounded-xl.bg-gray-50   { background-color: var(--bg-elevated) !important; }
+
+/* ─── Form inputs ─────────────────────────────────────────── */
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: var(--bg-elevated) !important;
+  border-color: var(--border) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(123, 108, 246, 0.15) !important;
+  background-color: var(--bg-surface) !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--text-tertiary) !important;
+}
+
+/* Specific input classes from components */
+.dark .focus\:ring-purple-500:focus {
+  --tw-ring-color: var(--accent) !important;
+}
+
+/* ─── Buttons (outlined / ghost) ───────────────────────────── */
+.dark .hover\:bg-gray-100:hover  { background-color: var(--bg-elevated) !important; }
+.dark .hover\:bg-gray-50:hover   { background-color: var(--bg-elevated) !important; }
+
+/* ─── Dividers / separators ────────────────────────────────── */
+.dark .divide-gray-100 > *   { border-color: var(--border-subtle) !important; }
+.dark .divide-gray-200 > *   { border-color: var(--border) !important; }
+
+/* ─── Dashed borders ───────────────────────────────────────── */
+.dark .border-dashed           { border-color: var(--border-strong) !important; }
+
+/* ─── Badge / Pill backgrounds ─────────────────────────────── */
+.dark .bg-purple-50.text-purple-600,
+.dark .text-purple-600.bg-purple-50 {
+  background-color: var(--accent-subtle) !important;
+  color: var(--accent) !important;
+}
+
+/* ─── Table rows ───────────────────────────────────────────── */
+.dark .hover\:bg-gray-50:hover,
+.dark tr:hover                 { background-color: var(--bg-elevated) !important; }
+
+/* ─── Specific component containers ───────────────────────── */
+/* DashboardContent main wrapper */
+.dark .min-h-screen.bg-gray-50 { background-color: var(--bg-base) !important; }
+.dark .max-w-6xl,
+.dark .max-w-7xl               { /* just containers, no bg needed */ }
+
+/* Stat/summary cards */
+.dark .bg-white.p-6.rounded-2xl,
+.dark .bg-white.rounded-2xl    {
+  background-color: var(--bg-surface) !important;
+  border-color: var(--border) !important;
+}
+
+/* Progress bar backgrounds */
+.dark .bg-gray-100.rounded-full { background-color: var(--bg-elevated) !important; }
+.dark .bg-gray-200.rounded-full { background-color: #2a2a34 !important; }
+
+/* Modal / dialog overlays */
+.dark .bg-white.rounded-2xl.shadow-xl,
+.dark .bg-white.rounded-xl.shadow-xl,
+.dark .bg-white.rounded-2xl.shadow-lg {
+  background-color: var(--bg-surface) !important;
+  border: 1px solid var(--border) !important;
+}
+
+/* ─── Recharts chart colors ─────────────────────────────────── */
+.dark .recharts-cartesian-grid line  { stroke: var(--border) !important; }
+.dark .recharts-text                 { fill: var(--text-secondary) !important; }
+.dark .recharts-legend-item-text     { color: var(--text-secondary) !important; }
+.dark .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: var(--bg-surface) !important;
+  border-color: var(--border) !important;
+  color: var(--text-primary) !important;
+}
+
+/* ─── Select / Dropdown options ─────────────────────────────── */
+.dark option {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+/* ─── Scrollbar in dark mode ─────────────────────────────────── */
+.dark ::-webkit-scrollbar-track { background: var(--bg-elevated); }
+.dark ::-webkit-scrollbar-thumb { background: var(--border-strong); }
+
+/* ─── Extra text overrides ──────────────────────────────────── */
+.dark .text-purple-700         { color: var(--accent) !important; }
+.dark .text-indigo-700         { color: var(--accent) !important; }
+
+/* Purple/indigo bg buttons (accent buttons — keep as is) */
+.dark .bg-purple-600           { background-color: var(--accent) !important; }
+.dark .bg-purple-700           { background-color: var(--accent-hover) !important; }
+.dark .hover\:bg-purple-700:hover { background-color: var(--accent-hover) !important; }
+
+/* Shadow accent  */
+.dark .shadow-purple-200       { box-shadow: none !important; }
+
+/* border-indigo-100, border-purple-100 */
+.dark .border-indigo-100       { border-color: var(--border) !important; }
+.dark .border-purple-100       { border-color: var(--border) !important; }
+
+/* ─── Page-level body override ───────────────────────────────── */
+/* Garante que pages que não têm bg-gray-50 também peguem o tema */
+.dark body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+}
+
+/* ─── Catch remaining label/span grays ──────────────────────── */
+.dark .text-gray-500           { color: var(--text-tertiary) !important; }
+.dark .text-gray-600           { color: var(--text-secondary) !important; }
+.dark .text-gray-700           { color: var(--text-secondary) !important; }
+.dark .text-gray-900           { color: var(--text-primary) !important; }
+
+/* Decorative gradient bg — do NOT override with surface bg */
+.dark [class*="from-purple-7"],
+.dark [class*="from-purple-6"],
+.dark [class*="from-indigo-"] {
+  /* preserve gradient classes */
+  background-color: unset;
 }

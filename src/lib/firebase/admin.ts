@@ -22,5 +22,11 @@ export function initializeAdminApp() {
     })
   });
 
+  try {
+    admin.firestore().settings({ ignoreUndefinedProperties: true });
+  } catch (e) {
+    // Configurações já aplicadas
+  }
+
   return admin;
 }
